@@ -3,6 +3,7 @@ package com.wte.be.wte.application;
 import com.fasterxml.jackson.core.*;
 import com.fasterxml.jackson.databind.*;
 import com.wte.be.wte.dtos.*;
+import com.wte.be.wte.entity.*;
 import com.wte.be.wte.util.*;
 import lombok.extern.slf4j.*;
 import org.springframework.beans.factory.annotation.*;
@@ -27,8 +28,9 @@ public class GetLocationService {
     @Value("${naver.api.client.password}")
     private String apipwd;
 
-    public ResponseEntity<Message> getLocationInfo(String query, String sort) throws JsonProcessingException {
+    public ResponseEntity<Message> getLocationInfo(LocationEntity param, String sort) {
         ArrayList itemList = new ArrayList();
+        String query = param.getLocation();
 
         // TODO 비동기로 3회를 불러서 랜덤 택1은 너무 비효율적이겠죠..?
         // TODO 제외건은 어떻게 할지..
@@ -46,7 +48,7 @@ public class GetLocationService {
         }
         // 그래도 없으면 없음return
 
-        return randomSelect(itemList);
+        return randomSelect(itemList, param);
     }
 
     public ArrayList usePlaceApi(String query, String sort) {
@@ -71,25 +73,44 @@ public class GetLocationService {
         return itemList;
     }
 
-    public ResponseEntity<Message> randomSelect(ArrayList placeList) {
+    public ResponseEntity<Message> randomSelect(ArrayList placeList, LocationEntity lparam) {
         Message message = null;
         HttpHeaders headers= new HttpHeaders();
         headers.setContentType(new MediaType("application", "json", Charset.forName("UTF-8")));
+        HashMap failMap = new HashMap();
+        failMap.put("rsn", "검색 결과 없음");
 
-        if (placeList.size() < 1) {
-            HashMap failMap = new HashMap();
-            failMap.put("rsn", "검색 결과 없음");
+        try {
+            if (placeList.size() < 1) {
+                message = CreateMsg.makeMsg(StatusEnum.BAD_REQUEST, "실패", failMap);
+            } else {
+                ApiResponseDTO adto = filterDislike(placeList, lparam.getDislike(), lparam.getYesterday());
+                if (adto == null) {
+                    message = CreateMsg.makeMsg(StatusEnum.BAD_REQUEST, "실패", failMap);
+                } else {
+                    message = CreateMsg.makeMsg(StatusEnum.OK, "성공", adto);
+                }
+            }
+            return new ResponseEntity<>(message, headers, HttpStatus.OK);
+        } catch (Exception e) {
             message = CreateMsg.makeMsg(StatusEnum.BAD_REQUEST, "실패", failMap);
-        } else {
-            double random=Math.random();
-            int num = (int)Math.round(random * (placeList.size()-1));
-
-            ObjectMapper mapper = new ObjectMapper();
-            ApiResponseDTO adto = mapper.convertValue(placeList.get(num), ApiResponseDTO.class);
-            message = CreateMsg.makeMsg(StatusEnum.OK, "성공", adto);
+            return new ResponseEntity<>(message, headers, HttpStatus.OK);
         }
+    }
 
-        return new ResponseEntity<>(message, headers, HttpStatus.OK);
+    public ApiResponseDTO filterDislike(ArrayList placeList, String dislike, String yesterday) {
+        ArrayList returnList = new ArrayList();
+        ObjectMapper mapper = new ObjectMapper();
+        placeList.forEach(i -> {
+            ApiResponseDTO adto = mapper.convertValue(i, ApiResponseDTO.class);
+            if (!adto.getCategory().contains(dislike) && !adto.getCategory().contains(yesterday)) {
+                returnList.add(i);
+            }
+        });
+        double random=Math.random();
+        int num = (int)Math.round(random * (returnList.size()-1));
+        ApiResponseDTO adto = mapper.convertValue(returnList.get(num), ApiResponseDTO.class);
 
+        return adto;
     }
 }
