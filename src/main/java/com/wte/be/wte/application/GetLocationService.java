@@ -30,8 +30,12 @@ public class GetLocationService {
 
     public ResponseEntity<Message> getLocationInfo(LocationEntity param, String sort) {
         ArrayList itemList = new ArrayList();
-        String query = param.getLocation();
-
+        List<String> foodList = Arrays.asList("한식", "중식", "일식", "버거", "피자", "양식", "분식", "돈까스", "면", "샐러드",
+                "마라탕", "국수", "고기", "김치찌개", "찌개", "브런치", "샤브샤브");
+        double random=Math.random();
+        int num = (int)Math.round(random * (foodList.size()-1));
+        String query = foodList.get(num);
+        //param.getLocation();
         // TODO 비동기로 3회를 불러서 랜덤 택1은 너무 비효율적이겠죠..?
         // TODO 제외건은 어떻게 할지..
         // TODO while이나 stream 방식으로 바꿔도 OK..일단 개수가 적어서
