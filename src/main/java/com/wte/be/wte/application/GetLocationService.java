@@ -31,11 +31,12 @@ public class GetLocationService {
     public ResponseEntity<Message> getLocationInfo(LocationEntity param, String sort) {
         ArrayList itemList = new ArrayList();
         List<String> foodList = Arrays.asList("한식", "중식", "일식", "버거", "피자", "양식", "분식", "돈까스", "면", "샐러드",
-                "마라탕", "국수", "고기", "김치찌개", "찌개", "브런치", "샤브샤브");
+                "마라탕", "국수", "고기", "김치찌개", "찌개", "브런치", "샤브샤브", "이탈리안", "국밥", "해산물", "베트남");
         double random=Math.random();
         int num = (int)Math.round(random * (foodList.size()-1));
         String query = foodList.get(num);
-        //param.getLocation();
+                //param.getLocation();
+
         // TODO 비동기로 3회를 불러서 랜덤 택1은 너무 비효율적이겠죠..?
         // TODO 제외건은 어떻게 할지..
         // TODO while이나 stream 방식으로 바꿔도 OK..일단 개수가 적어서
@@ -92,6 +93,7 @@ public class GetLocationService {
                 if (adto == null) {
                     message = CreateMsg.makeMsg(StatusEnum.BAD_REQUEST, "실패", failMap);
                 } else {
+                    adto.setImgUrl(getImgPath(adto.getTitle()));
                     message = CreateMsg.makeMsg(StatusEnum.OK, "성공", adto);
                 }
             }
@@ -116,5 +118,35 @@ public class GetLocationService {
         ApiResponseDTO adto = mapper.convertValue(returnList.get(num), ApiResponseDTO.class);
 
         return adto;
+    }
+
+    public String getImgPath(String searchItem) {
+        String nApiUrl = "https://openapi.naver.com/v1/search/image?query=" +
+                searchItem + "&display=5&start=1&sort=sim";
+
+        RestTemplate restTemplate = new RestTemplate();
+
+        HttpHeaders header = new HttpHeaders();
+        header.set("X-Naver-Client-Id", apiId);
+        header.set("X-Naver-Client-Secret", apipwd);
+
+        HttpEntity<?> entity = new HttpEntity<>(header);
+
+        UriComponents uri = UriComponentsBuilder.fromHttpUrl(nApiUrl).build();
+        ResponseEntity<Map> resultMap = restTemplate.exchange(uri.toString(), HttpMethod.GET, entity, Map.class);
+
+        ObjectMapper mapper = new ObjectMapper();
+        Map map = resultMap.getBody();
+        ArrayList itemList = (ArrayList) map.get("items");
+
+        String imgUrl = "";
+
+        if(itemList.size() > 0) {
+            HashMap itemMap = (HashMap) itemList.get(0);
+            imgUrl = (String) itemMap.get("link");
+        }
+
+        return imgUrl;
+
     }
 }

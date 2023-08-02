@@ -11,6 +11,16 @@ public class ApiResponseDTO {
     private int mapx;
     private int mapy;
 
+    public String getImgUrl() {
+        return imgUrl;
+    }
+
+    public void setImgUrl(String imgUrl) {
+        this.imgUrl = imgUrl;
+    }
+
+    private String imgUrl;
+
     public String getTitle() {
         return title;
     }
