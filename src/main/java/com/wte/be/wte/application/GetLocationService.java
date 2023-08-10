@@ -144,6 +144,9 @@ public class GetLocationService {
         if(itemList.size() > 0) {
             HashMap itemMap = (HashMap) itemList.get(0);
             imgUrl = (String) itemMap.get("link");
+            if(!imgUrl.contains("https")) {
+                imgUrl="";
+            }
         }
 
         return imgUrl;
