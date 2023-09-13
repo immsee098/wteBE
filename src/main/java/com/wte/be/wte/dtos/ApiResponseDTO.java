@@ -8,8 +8,8 @@ public class ApiResponseDTO {
     private String telephone;
     private String address;
     private String roadAddress;
-    private int mapx;
-    private int mapy;
+    private double mapx;
+    private double mapy;
 
     public String getImgUrl() {
         return imgUrl;
@@ -77,19 +77,19 @@ public class ApiResponseDTO {
         this.roadAddress = roadAddress;
     }
 
-    public int getMapx() {
+    public double getMapx() {
         return mapx;
     }
 
-    public void setMapx(int mapx) {
+    public void setMapx(double mapx) {
         this.mapx = mapx;
     }
 
-    public int getMapy() {
+    public double getMapy() {
         return mapy;
     }
 
-    public void setMapy(int mapy) {
+    public void setMapy(double mapy) {
         this.mapy = mapy;
     }
 }

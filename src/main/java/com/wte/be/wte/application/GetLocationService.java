@@ -28,6 +28,7 @@ public class GetLocationService {
     @Value("${naver.api.client.password}")
     private String apipwd;
 
+
     public ResponseEntity<Message> getLocationInfo(LocationEntity param, String sort) {
         ArrayList itemList = new ArrayList();
         List<String> foodList = Arrays.asList("한식", "중식", "일식", "버거", "피자", "양식", "분식", "돈까스", "면", "샐러드",
@@ -116,6 +117,11 @@ public class GetLocationService {
         double random=Math.random();
         int num = (int)Math.round(random * (returnList.size()-1));
         ApiResponseDTO adto = mapper.convertValue(returnList.get(num), ApiResponseDTO.class);
+
+        GeoTrans geoTrans = new GeoTrans();
+        HashMap<String, Double> geoMap = geoTrans.returnClass(adto.getMapx(), adto.getMapy());
+        adto.setMapx(geoMap.get("xval"));
+        adto.setMapy(geoMap.get("yval"));
 
         return adto;
     }
